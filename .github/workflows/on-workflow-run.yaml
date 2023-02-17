@@ -1,0 +1,12 @@
+on:
+  workflow_run:
+	  types:
+    - completed
+jobs:
+  run:
+	  runs-on: ubuntu-latest
+		steps:
+    - uses: Amadevus/pwsh-script@fbb60107f8d707858c4ab46336d3963b7991782e
+      name: Run script
+      with:
+        script:  Write-ActionInfo ($github | convertto-json -depth 100)
