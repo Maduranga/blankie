@@ -1,7 +1,6 @@
 on:
   workflow_run:
-    workflows: [Test Action]
-    branches: [main]
+    workflows: [Test action]
     types:
     - completed
 jobs:
