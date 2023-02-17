@@ -3,7 +3,6 @@ name: Create Issue For Prebuild Errors
 on:
   workflow_run:
     workflows: [Codespaces Prebuilds, Codespaces Prebuilds (ppe)]
-    branches: [main]
     types:
     - completed
 jobs:
