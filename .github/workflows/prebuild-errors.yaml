@@ -14,7 +14,6 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Alert on failure
-        if: ${{ !endsWith(github.event.workflow.name, '(ppe)') }}
         run: |
           title="⛑ ${{ github.repository }} Prebuild failed"
           
