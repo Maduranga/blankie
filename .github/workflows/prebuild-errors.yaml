@@ -20,4 +20,5 @@ jobs:
           body="The prebuild creation workflow has failed \n\n \
           Check [run history](${{ github.event.workflow.url }}) to investigate recent errors"
           
-          gh issue create -t "$title" -b "$body"
+          # Specify the repo so that we can avoid cloning
+          gh issue create -t "$title" -b "$body" -R "${{ github.repository }}"
