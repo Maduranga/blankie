@@ -17,7 +17,7 @@ jobs:
         run: |
           title="⛑ ${{ github.repository }} Prebuild failed"
           
-          body="The prebuild creation workflow has failed \n\n \
+          body="The prebuild creation workflow has failed `n`n \
           Check [run history](${{ github.event.workflow.url }}) to investigate recent errors"
           
           # Specify the repo so that we can avoid cloning
