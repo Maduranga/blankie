@@ -18,7 +18,8 @@ jobs:
     steps:
       - name: Alert on failure
         run: |
-          $url = if ($IS_PPE) { $PPE_RUNS_URL } else { $PRODUCTION_RUNS_URL }
+          echo $IS_PPE
+          [[ $IS_PPE ]] && url=$PPE_RUNS_URL || url=$PRODUCTION_RUNS_URL
           
           title="⛑ ${{ github.repository }} Prebuild failed"
           
