@@ -25,11 +25,26 @@ jobs:
             url="$PROD_RUNS_URL"
             env="Prod"
           fi
-          
+                
           title="⛑ ${{ github.repository }} $env Prebuild failed"
           
-          body=$(echo -e "The prebuild creation workflow has failed for $env.\n
-          Check the action's [run history]($url) to investigate any recent errors.")
+          existing_number=$(gh issue list \
+            --search "$title" \
+            --app github-actions \
+            -R "${{ github.repository }}" \
+            --limit 1 \
+            --json number \
+            | jq -r '.[0].number')
+
+          if [[ "$existing_number" = "null" ]]; then
+            body=$(echo -e "The prebuild creation workflow has failed for $env.\n
+            Check the action's [run history]($url) to investigate any recent errors.")
           
-          # Specify the repo so that we can avoid cloning
-          gh issue create -t "$title" -b "$body" -R "${{ github.repository }}"
+            gh issue create -t "$title" -b "$body" -R "${{ github.repository }}"
+          else
+            body="Ping! Looks like this is still happening :sweat_smile:"
+            
+            gh issue comment $existing_number -b "$body" -R "${{ github.repository }}"
+          fi
+  
+
