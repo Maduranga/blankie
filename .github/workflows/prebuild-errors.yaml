@@ -13,17 +13,26 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PPE_RUNS_URL: https://github.com/${{ github.repository }}/actions/workflows/codespaces/create_codespaces_prebuilds_ppe?query=branch%3Amain
-      PRODUCTION_RUNS_URL: https://github.com/${{ github.repository }}/actions/workflows/codespaces/create_codespaces_prebuilds?query=branch%3Amain
+      PROD_RUNS_URL: https://github.com/${{ github.repository }}/actions/workflows/codespaces/create_codespaces_prebuilds?query=branch%3Amain
       IS_PPE: ${{ endsWith(github.event.workflow.name, '(ppe)') }}
     steps:
       - name: Alert on failure
         run: |
-          [[ "$IS_PPE" = "true" ]] && url="$PPE_RUNS_URL" || url="$PRODUCTION_RUNS_URL"
+          if [[ "$IS_PPE" = "true" ]]; then
+            url="$PPE_RUNS_URL"
+            env="PPE"
+          else 
+            url="$PROD_RUNS_URL"
+            env="Prod"
+          fi
           
-          title="⛑ ${{ github.repository }} Prebuild failed"
+          title="⛑ ${{ github.repository }} $env Prebuild failed"
           
-          body="The prebuild creation workflow has failed\n\n \
-          Check [run history]($url) to investigate recent error"
+          read -r -d '' body <<- BODY
+          The prebuild creation workflow has failed for $env.
+          
+          Check the action's [run history]($url) to investigate any recent errors.
+          BODY
           
           # Specify the repo so that we can avoid cloning
           gh issue create -t "$title" -b "$body" -R "${{ github.repository }}"
