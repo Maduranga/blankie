@@ -18,13 +18,12 @@ jobs:
     steps:
       - name: Alert on failure
         run: |
-          echo $IS_PPE
-          [[ $IS_PPE ]] && url=$PPE_RUNS_URL || url=$PRODUCTION_RUNS_URL
+          [[ "$IS_PPE" = "true" ]] && url="$PPE_RUNS_URL" || url="$PRODUCTION_RUNS_URL"
           
           title="⛑ ${{ github.repository }} Prebuild failed"
           
-          body="The prebuild creation workflow has failed `n`n \
-          Check [run history]($url) to investigate recent errors"
+          body="The prebuild creation workflow has failed\n\n \
+          Check [run history]($url) to investigate recent error"
           
           # Specify the repo so that we can avoid cloning
-          gh issue create -t "$title" -b "$body" -R "${{ github.repository }}"
+          gh issue create -t $title -b $body -R "${{ github.repository }}"
