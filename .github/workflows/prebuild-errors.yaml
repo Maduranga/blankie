@@ -26,4 +26,4 @@ jobs:
           Check [run history]($url) to investigate recent error"
           
           # Specify the repo so that we can avoid cloning
-          gh issue create -t $title -b $body -R "${{ github.repository }}"
+          gh issue create -t "$title" -b "$body" -R "${{ github.repository }}"
