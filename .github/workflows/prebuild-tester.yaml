@@ -9,6 +9,9 @@ on:
       agent_zip_url:
         description: 'NGROK url and path to agent zip'
         required: true
+      prebuild_token:
+        description: 'Prebuild GH token'
+        required: true
 defaults:
   run:
     shell: sudo -EH bash {0}
@@ -70,7 +73,7 @@ jobs:
       CODESPACES_GITHUB__WORKFLOWRUNID: "${{ github.run_id }}"
       CODESPACES_TELEMETRYSETTINGS__TELEMETRYENDPOINT: "codespaces_internal/prebuilds/repository/${{ github.repository }}/agent/diagnostics"
       TARGET_VSCS_LOCATIONS: WestUs2
-      USER_SECRETS_JSON: "[{\"type\":\"EnvironmentVariable\",\"name\":\"GITHUB_TOKEN\",\"value\":\"${{ secrets.GITHUB_TOKEN }}\"}]"
+      USER_SECRETS_JSON: "[{\"type\":\"EnvironmentVariable\",\"name\":\"GITHUB_TOKEN\",\"value\":\"${{ github.event.inputs.prebuild_token }}\"}]"
       REPO_URL: "${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}"
       REPO_URL_WITHOUT_BRANCH: "${{ github.server_url }}/${{ github.repository }}"
       REPO_NAME_WITHOUT_OWNER: blankie
