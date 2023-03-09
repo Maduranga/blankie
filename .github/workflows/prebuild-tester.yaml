@@ -6,6 +6,14 @@ on:
         description: 'Your devstamp user alias'
         default: 'bcaleb'
         required: true
+      secrets_GITHUB_CODESPACES_INTERNAL_URL:
+        description: 'The GITHUB_CODESPACES_INTERNAL_URL secret value'
+        default: codespaces_internal/prebuilds/repository
+        required: true
+      secrets_GITHUB_CODESPACE_AGENT_SECRETS:
+        description: 'The GITHUB_CODESPACE_AGENT_SECRETS secret value'
+        default: '{}'
+        required: true
 jobs:
   prebuild:
     runs-on: codespaces-prebuild
@@ -61,17 +69,17 @@ jobs:
       CODESPACES_GITHUB__APITOKEN: "${{ secrets.GITHUB_TOKEN }}"
       CODESPACES_GITHUB__VSCSTARGET: local
       CODESPACES_GITHUB__WORKFLOWRUNID: "${{ github.run_id }}"
-      CODESPACES_TELEMETRYSETTINGS__TELEMETRYENDPOINT: "${{ secrets.GITHUB_CODESPACES_INTERNAL_URL }}/${{ github.repository }}/agent/diagnostics"
+      CODESPACES_TELEMETRYSETTINGS__TELEMETRYENDPOINT: "${{ github.event.inputs.secrets_GITHUB_CODESPACES_INTERNAL_URL }}/${{ github.repository }}/agent/diagnostics"
       TARGET_VSCS_LOCATIONS: WestUs2
-      USER_SECRETS_JSON: "${{secrets.GITHUB_CODESPACE_AGENT_SECRETS}}"
+      USER_SECRETS_JSON: "${{ github.event.inputs.secrets_GITHUB_CODESPACE_AGENT_SECRETS }}"
       REPO_URL: "${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}"
       REPO_URL_WITHOUT_BRANCH: "${{ github.server_url }}/${{ github.repository }}"
       REPO_NAME_WITHOUT_OWNER: blankie
       DEVCONTAINER_PATH: ''
       CONFIGURATION_ID: ''
       CODESPACES_GITHUB__VSCSTARGETURL: https://codespaces.servicebus.windows.net/${{ github.event.inputs.username }}
-      INTERNAL_URL: "${{ secrets.GITHUB_CODESPACES_INTERNAL_URL }}"
-      LOG_PATH: "${{ secrets.GITHUB_CODESPACES_LOG_PATH}}"
-      TARGET_KEY: "${{ secrets.GITHUB_CODESPACES_TARGET_KEY }}"
-      TARGET_LOCATION_KEY: "${{ secrets.GITHUB_CODESPACES_LOCATION_KEY }}"
-      TARGET_URL_KEY: "${{ secrets.GITHUB_CODESPACES_TARGET_URL_KEY }}"
+      INTERNAL_URL: "${{ github.event.inputs.secrets_GITHUB_CODESPACES_INTERNAL_URL }}"
+      LOG_PATH: "/tmp/VSFeedbackVSRTCLogs"
+      TARGET_KEY: "vscs_target"
+      TARGET_LOCATION_KEY: "vscs_location"
+      TARGET_URL_KEY: "vscs_target_url"
