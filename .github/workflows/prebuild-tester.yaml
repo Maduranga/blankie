@@ -6,13 +6,8 @@ on:
         description: 'Your devstamp user alias'
         default: 'bcaleb'
         required: true
-      secrets_GITHUB_CODESPACES_INTERNAL_URL:
-        description: 'The GITHUB_CODESPACES_INTERNAL_URL secret value'
-        default: codespaces_internal/prebuilds/repository
-        required: true
-      secrets_GITHUB_CODESPACE_AGENT_SECRETS:
-        description: 'The GITHUB_CODESPACE_AGENT_SECRETS secret value'
-        default: '[]'
+      agent_zip_url:
+        description: 'NGROK url and path to agent zip'
         required: true
 defaults:
   run:
@@ -34,10 +29,11 @@ jobs:
         mkdir -p /.codespaces/agent/bin
         cd /.codespaces/agent/bin
         FIRST_LOCATION=($TARGET_VSCS_LOCATIONS)
-        AGENT_DOWNLOAD_URL="${{ github.api_url }}/$INTERNAL_URL/${{ github.repository }}/agent/download?$TARGET_LOCATION_KEY=$FIRST_LOCATION&workflow_run_id=$CODESPACES_GITHUB__WORKFLOWRUNID&$TARGET_KEY=$CODESPACES_GITHUB__VSCSTARGET&$TARGET_URL_KEY=${CODESPACES_GITHUB__VSCSTARGETURL-}"
-        curl -v --location $AGENT_DOWNLOAD_URL \
-          --header "Authorization: token $CODESPACES_GITHUB__APITOKEN" #\
-          #--output tmp.zip
+        #AGENT_DOWNLOAD_URL="${{ github.api_url }}/$INTERNAL_URL/${{ github.repository }}/agent/download?$TARGET_LOCATION_KEY=$FIRST_LOCATION&workflow_run_id=$CODESPACES_GITHUB__WORKFLOWRUNID&$TARGET_KEY=$CODESPACES_GITHUB__VSCSTARGET&$TARGET_URL_KEY=${CODESPACES_GITHUB__VSCSTARGETURL-}"
+        AGENT_DOWNLOAD_URL="${{ github.event.inputs.agent_zip_url }}"
+        curl --location $AGENT_DOWNLOAD_URL \
+          --header "Authorization: token $CODESPACES_GITHUB__APITOKEN" \
+          --output tmp.zip
         unzip -q tmp.zip && rm tmp.zip
         # Install agent
         containerTmp=/mnt/containerTmp
@@ -72,16 +68,16 @@ jobs:
       CODESPACES_GITHUB__APITOKEN: "${{ secrets.GITHUB_TOKEN }}"
       CODESPACES_GITHUB__VSCSTARGET: local
       CODESPACES_GITHUB__WORKFLOWRUNID: "${{ github.run_id }}"
-      CODESPACES_TELEMETRYSETTINGS__TELEMETRYENDPOINT: "${{ github.event.inputs.secrets_GITHUB_CODESPACES_INTERNAL_URL }}/${{ github.repository }}/agent/diagnostics"
+      CODESPACES_TELEMETRYSETTINGS__TELEMETRYENDPOINT: "codespaces_internal/prebuilds/repository/${{ github.repository }}/agent/diagnostics"
       TARGET_VSCS_LOCATIONS: WestUs2
-      USER_SECRETS_JSON: "${{ github.event.inputs.secrets_GITHUB_CODESPACE_AGENT_SECRETS }}"
+      USER_SECRETS_JSON: "[{\"type\":\"EnvironmentVariable\",\"name\":\"GITHUB_TOKEN\",\"value\":\"${{ secrets.GITHUB_TOKEN }}\"}]"
       REPO_URL: "${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}"
       REPO_URL_WITHOUT_BRANCH: "${{ github.server_url }}/${{ github.repository }}"
       REPO_NAME_WITHOUT_OWNER: blankie
       DEVCONTAINER_PATH: ''
       CONFIGURATION_ID: ''
       CODESPACES_GITHUB__VSCSTARGETURL: https://codespaces.servicebus.windows.net/${{ github.event.inputs.username }}
-      INTERNAL_URL: "${{ github.event.inputs.secrets_GITHUB_CODESPACES_INTERNAL_URL }}"
+      INTERNAL_URL: "codespaces_internal/prebuilds/repository"
       LOG_PATH: "/tmp/VSFeedbackVSRTCLogs"
       TARGET_KEY: "vscs_target"
       TARGET_LOCATION_KEY: "vscs_location"
