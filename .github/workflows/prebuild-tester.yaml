@@ -22,7 +22,7 @@ jobs:
       run: |
         echo -e $USER_SECRETS_JSON | 
           jq 'del(.[] | select(.value=="GitHub" or .value=="noreply@github.com" or .value=="https://github.com" or .value=="https://api.github.com" or .value=="https://api.github.com/graphql" or .value=="${{ github.repository }}" or .value=="" or .value==null))' |
-          jq 'unique_by(.value)' | jq .[] | jq '.value[]? // .value?' | jq -r "::add-mask::"+'.?'
+          jq 'unique_by(.value)' | jq '.[]' | jq '.value[]? // .value?' | jq -r \"::add-mask::\"+'.?'
     - name: Install Agent
       run: |
         umount -f /mnt
