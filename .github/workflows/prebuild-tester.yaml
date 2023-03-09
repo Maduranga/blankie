@@ -1,0 +1,77 @@
+name: Prebuild test
+on:
+  workflow_dispatch:
+    inputs:
+      username:
+        description: 'Your devstamp user alias'
+        default: 'bcaleb'
+        required: true
+jobs:
+  prebuild:
+    runs-on: codespaces-prebuild
+    steps:
+    - name: Mask secrets
+      run: |
+        echo -e $USER_SECRETS_JSON | jq 'del(.[] |
+          select(.value=="GitHub" or .value=="noreply@github.com" or .value=="https://github.com" or .value=="https://api.github.com" or .value=="https://api.github.com/graphql" or .value=="${{ github.repository }}" or .value=="" or .value==null))' |
+          jq 'unique_by(.value)' | jq .[] | jq '.value[]? // .value?' |jq -r \\\"::add-mask::\\\"+'.?'
+    - name: Install Agent
+      run: |
+        umount -f /mnt
+        set -exu pipefall
+        # Download and extract agent
+        mkdir -p /.codespaces/agent/bin
+        cd /.codespaces/agent/bin
+        FIRST_LOCATION=($TARGET_VSCS_LOCATIONS)
+        AGENT_DOWNLOAD_URL="${{ github.api_url }}/$INTERNAL_URL/${{ github.repository }}/agent/download?$TARGET_LOCATION_KEY=$FIRST_LOCATION&workflow_run_id=$CODESPACES_GITHUB__WORKFLOWRUNID&$TARGET_KEY=$CODESPACES_GITHUB__VSCSTARGET&$TARGET_URL_KEY=${CODESPACES_GITHUB__VSCSTARGETURL-}"
+        curl --location $AGENT_DOWNLOAD_URL \
+          --header "Authorization: token $CODESPACES_GITHUB__APITOKEN" \
+          --output tmp.zip
+        unzip -q tmp.zip && rm tmp.zip
+        # Install agent
+        containerTmp=/mnt/containerTmp
+        mkdir -p $containerTmp
+        chmod o+rwt $containerTmp
+        setfacl -dR -m o::rw $containerTmp
+        codespacesSharedFolder=~/.codespaces/shared
+        mkdir -p $codespacesSharedFolder
+        chmod o+rw $codespacesSharedFolder
+        setfacl -dR -m o::rw $codespacesSharedFolder
+        chmod +x install_codespaces_agent.sh
+        ./install_codespaces_agent.sh
+        # Make copy of codespaces agent to mount
+        mkdir -p /.codespaces/agent/mount
+        cp -a /.codespaces/agent/bin/. /.codespaces/agent/mount
+    - name: Create Template
+      run: |
+        # Create
+        /.codespaces/agent/bin/codespaces prebuild create --repo-url $REPO_URL_WITHOUT_BRANCH --repo-name-no-owner $REPO_NAME_WITHOUT_OWNER --branch ${{ github.ref_name }} --devcontainer-path $DEVCONTAINER_PATH --commit ${{ github.sha }} --config-id $CONFIGURATION_ID --user-secrets-env USER_SECRETS_JSON
+    - name: Upload Template
+      run: |
+        for location in $TARGET_VSCS_LOCATIONS; do
+          /.codespaces/agent/bin/codespaces prebuild upload --location $location --repo-name ${{ github.repository }} --devcontainer-path $DEVCONTAINER_PATH --config-id $CONFIGURATION_ID
+        done
+    - name: Save Creation Logs
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: logs
+        path: "${{ env.LOG_PATH }}"
+    env:
+      CODESPACES_GITHUB__APITOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      CODESPACES_GITHUB__VSCSTARGET: local
+      CODESPACES_GITHUB__WORKFLOWRUNID: "${{ github.run_id }}"
+      CODESPACES_TELEMETRYSETTINGS__TELEMETRYENDPOINT: "${{ secrets.GITHUB_CODESPACES_INTERNAL_URL }}/${{ github.repository }}/agent/diagnostics"
+      TARGET_VSCS_LOCATIONS: WestUs2
+      USER_SECRETS_JSON: "${{secrets.GITHUB_CODESPACE_AGENT_SECRETS}}"
+      REPO_URL: "${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}"
+      REPO_URL_WITHOUT_BRANCH: "${{ github.server_url }}/${{ github.repository }}"
+      REPO_NAME_WITHOUT_OWNER: blankie
+      DEVCONTAINER_PATH: ''
+      CONFIGURATION_ID: ''
+      CODESPACES_GITHUB__VSCSTARGETURL: https://codespaces.servicebus.windows.net/${{ github.event.inputs.username }}
+      INTERNAL_URL: "${{ secrets.GITHUB_CODESPACES_INTERNAL_URL }}"
+      LOG_PATH: "${{ secrets.GITHUB_CODESPACES_LOG_PATH}}"
+      TARGET_KEY: "${{ secrets.GITHUB_CODESPACES_TARGET_KEY }}"
+      TARGET_LOCATION_KEY: "${{ secrets.GITHUB_CODESPACES_LOCATION_KEY }}"
+      TARGET_URL_KEY: "${{ secrets.GITHUB_CODESPACES_TARGET_URL_KEY }}"
