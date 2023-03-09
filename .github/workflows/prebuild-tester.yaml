@@ -36,8 +36,8 @@ jobs:
         FIRST_LOCATION=($TARGET_VSCS_LOCATIONS)
         AGENT_DOWNLOAD_URL="${{ github.api_url }}/$INTERNAL_URL/${{ github.repository }}/agent/download?$TARGET_LOCATION_KEY=$FIRST_LOCATION&workflow_run_id=$CODESPACES_GITHUB__WORKFLOWRUNID&$TARGET_KEY=$CODESPACES_GITHUB__VSCSTARGET&$TARGET_URL_KEY=${CODESPACES_GITHUB__VSCSTARGETURL-}"
         curl -v --location $AGENT_DOWNLOAD_URL \
-          --header "Authorization: token $CODESPACES_GITHUB__APITOKEN" \
-          --output tmp.zip
+          --header "Authorization: token $CODESPACES_GITHUB__APITOKEN" #\
+          #--output tmp.zip
         unzip -q tmp.zip && rm tmp.zip
         # Install agent
         containerTmp=/mnt/containerTmp
