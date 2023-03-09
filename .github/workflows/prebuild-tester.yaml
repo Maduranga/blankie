@@ -52,7 +52,7 @@ jobs:
     - name: Create Template
       run: |
         # Create
-        /.codespaces/agent/bin/codespaces prebuild create --repo-url $REPO_URL_WITHOUT_BRANCH --repo-name-no-owner $REPO_NAME_WITHOUT_OWNER --branch ${{ github.ref_name }} --devcontainer-path "$DEVCONTAINER_PATH" --commit ${{ github.sha }} --config-id $CONFIGURATION_ID --user-secrets-env $USER_SECRETS_JSON
+        /.codespaces/agent/bin/codespaces prebuild create --repo-url $REPO_URL_WITHOUT_BRANCH --repo-name-no-owner $REPO_NAME_WITHOUT_OWNER --branch ${{ github.ref_name }} --devcontainer-path "$DEVCONTAINER_PATH" --commit ${{ github.sha }} --config-id $CONFIGURATION_ID --user-secrets-env USER_SECRETS_JSON
     - name: Upload Template
       run: |
         for location in $TARGET_VSCS_LOCATIONS; do
