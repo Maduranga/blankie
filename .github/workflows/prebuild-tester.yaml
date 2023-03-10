@@ -36,7 +36,7 @@ jobs:
         mkdir -p /.codespaces/agent/bin
         cd /.codespaces/agent/bin
         FIRST_LOCATION=($TARGET_VSCS_LOCATIONS)
-        AGENT_DOWNLOAD_URL="${{ github.event.inputs.dotcom_url }}/$INTERNAL_URL/${{ github.event.inputs.repository }}/agent/download?$TARGET_LOCATION_KEY=$FIRST_LOCATION&workflow_run_id=$CODESPACES_GITHUB__WORKFLOWRUNID&$TARGET_KEY=$CODESPACES_GITHUB__VSCSTARGET&$TARGET_URL_KEY=${CODESPACES_GITHUB__VSCSTARGETURL-}"
+        AGENT_DOWNLOAD_URL="${{ github.event.inputs.dotcom_url }}/api/v3/$INTERNAL_URL/${{ github.event.inputs.repository }}/agent/download?$TARGET_LOCATION_KEY=$FIRST_LOCATION&workflow_run_id=$CODESPACES_GITHUB__WORKFLOWRUNID&$TARGET_KEY=$CODESPACES_GITHUB__VSCSTARGET&$TARGET_URL_KEY=${CODESPACES_GITHUB__VSCSTARGETURL-}"
         #AGENT_DOWNLOAD_URL="${{ github.event.inputs.agent_zip_url }}"
         curl --location $AGENT_DOWNLOAD_URL \
           --header "Authorization: token $CODESPACES_GITHUB__APITOKEN" \
@@ -89,4 +89,4 @@ jobs:
       TARGET_KEY: "vscs_target"
       TARGET_LOCATION_KEY: "vscs_location"
       TARGET_URL_KEY: "vscs_target_url"
-      CODESPACES_gitHub_apiBaseUrl: "${{ github.event.inputs.api_url }}"
+      CODESPACES_gitHub_apiBaseUrl: "${{ github.event.inputs.dotcom_url }}/api/v3"
