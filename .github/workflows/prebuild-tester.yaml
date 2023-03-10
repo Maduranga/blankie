@@ -9,6 +9,9 @@ on:
       dotcom_url:
         description: 'NGROK url to dotcom devstamp'
         required: true
+      pat:
+        description: 'The devstamp user PAT'
+        required: true
       repository:
         description: 'The devstamp repo to create for'
         default: 'monalisa/smile'
@@ -70,12 +73,12 @@ jobs:
         name: logs
         path: "${{ env.LOG_PATH }}"
     env:
-      CODESPACES_GITHUB__APITOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      CODESPACES_GITHUB__APITOKEN: "${{ github.event.inputs.pat }}"
       CODESPACES_GITHUB__VSCSTARGET: local
       CODESPACES_GITHUB__WORKFLOWRUNID: "${{ github.run_id }}"
       CODESPACES_TELEMETRYSETTINGS__TELEMETRYENDPOINT: "codespaces_internal/prebuilds/repository/${{ github.repository }}/agent/diagnostics"
       TARGET_VSCS_LOCATIONS: WestUs2
-      USER_SECRETS_JSON: "[{\"type\":\"EnvironmentVariable\",\"name\":\"GITHUB_TOKEN\",\"value\":\"${{ github.event.inputs.prebuild_token }}\"}]"
+      USER_SECRETS_JSON: "[{\"type\":\"EnvironmentVariable\",\"name\":\"GITHUB_TOKEN\",\"value\":\"${{ github.event.inputs.pat }}\"}]"
       REPO_URL: "${{ github.event.inputs.dotcom_url }}/${{ github.event.inputs.repository }}/tree/${{ github.ref_name }}"
       REPO_URL_WITHOUT_BRANCH: "${{ github.event.inputs.dotcom_url }}/${{ github.event.inputs.repository }}"
       DEVCONTAINER_PATH: ''
