@@ -16,6 +16,10 @@ on:
         description: 'The devstamp repo to create for'
         default: 'monalisa/smile'
         required: true
+      branch:
+        description: 'The branch'
+        default: 'main'
+        required: true
 defaults:
   run:
     shell: sudo -EH bash {0}
@@ -60,7 +64,7 @@ jobs:
       run: |
         # Create
         REPO_NAME_WITHOUT_OWNER="$(echo "${{ github.event.inputs.repository }}" | awk -F '/' '{print $2}')"
-        /.codespaces/agent/bin/codespaces prebuild create --repo-url $REPO_URL_WITHOUT_BRANCH --repo-name-no-owner $REPO_NAME_WITHOUT_OWNER --branch ${{ github.ref_name }} --devcontainer-path "$DEVCONTAINER_PATH" --commit ${{ github.sha }} --config-id "$CONFIGURATION_ID" --user-secrets-env USER_SECRETS_JSON
+        /.codespaces/agent/bin/codespaces prebuild create --repo-url $REPO_URL_WITHOUT_BRANCH --repo-name-no-owner $REPO_NAME_WITHOUT_OWNER --branch ${{ github.event.inputs.branch }} --devcontainer-path "$DEVCONTAINER_PATH" --config-id "$CONFIGURATION_ID" --user-secrets-env USER_SECRETS_JSON
     - name: Upload Template
       run: |
         for location in $TARGET_VSCS_LOCATIONS; do
@@ -79,7 +83,7 @@ jobs:
       CODESPACES_TELEMETRYSETTINGS__TELEMETRYENDPOINT: "codespaces_internal/prebuilds/repository/${{ github.repository }}/agent/diagnostics"
       TARGET_VSCS_LOCATIONS: WestUs2
       USER_SECRETS_JSON: "[{\"type\":\"EnvironmentVariable\",\"name\":\"GITHUB_TOKEN\",\"value\":\"${{ github.event.inputs.pat }}\"}]"
-      REPO_URL: "${{ github.event.inputs.dotcom_url }}/${{ github.event.inputs.repository }}/tree/${{ github.ref_name }}"
+      REPO_URL: "${{ github.event.inputs.dotcom_url }}/${{ github.event.inputs.repository }}/tree/${{ github.event.inputs.branch }}"
       REPO_URL_WITHOUT_BRANCH: "${{ github.event.inputs.dotcom_url }}/${{ github.event.inputs.repository }}"
       DEVCONTAINER_PATH: ''
       CONFIGURATION_ID: ''
