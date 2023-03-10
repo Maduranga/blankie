@@ -77,6 +77,7 @@ jobs:
         name: logs
         path: "${{ env.LOG_PATH }}"
     env:
+      CODESPACES_GITHUB__APIURLBASE: "${{ github.event.inputs.dotcom_url }}/api/v3"
       CODESPACES_GITHUB__APITOKEN: "${{ github.event.inputs.pat }}"
       CODESPACES_GITHUB__VSCSTARGET: local
       CODESPACES_GITHUB__WORKFLOWRUNID: "${{ github.run_id }}"
@@ -93,4 +94,3 @@ jobs:
       TARGET_KEY: "vscs_target"
       TARGET_LOCATION_KEY: "vscs_location"
       TARGET_URL_KEY: "vscs_target_url"
-      CODESPACES_gitHub_apiBaseUrl: "${{ github.event.inputs.dotcom_url }}/api/v3"
