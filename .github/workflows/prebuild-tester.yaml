@@ -6,8 +6,12 @@ on:
         description: 'Your devstamp user alias'
         default: 'bcaleb'
         required: true
-      api_url:
-        description: 'NGROK url to devstamp GH api'
+      dotcom_url:
+        description: 'NGROK url to dotcom devstamp'
+        required: true
+      repository:
+        description: 'The devstamp repo to create for'
+        default: 'monalisa/smile'
         required: true
 defaults:
   run:
@@ -29,7 +33,7 @@ jobs:
         mkdir -p /.codespaces/agent/bin
         cd /.codespaces/agent/bin
         FIRST_LOCATION=($TARGET_VSCS_LOCATIONS)
-        AGENT_DOWNLOAD_URL="${{ github.event.inputs.api_url }}/$INTERNAL_URL/${{ github.repository }}/agent/download?$TARGET_LOCATION_KEY=$FIRST_LOCATION&workflow_run_id=$CODESPACES_GITHUB__WORKFLOWRUNID&$TARGET_KEY=$CODESPACES_GITHUB__VSCSTARGET&$TARGET_URL_KEY=${CODESPACES_GITHUB__VSCSTARGETURL-}"
+        AGENT_DOWNLOAD_URL="${{ github.event.inputs.dotcom_url }}/$INTERNAL_URL/${{ github.event.inputs.repository }}/agent/download?$TARGET_LOCATION_KEY=$FIRST_LOCATION&workflow_run_id=$CODESPACES_GITHUB__WORKFLOWRUNID&$TARGET_KEY=$CODESPACES_GITHUB__VSCSTARGET&$TARGET_URL_KEY=${CODESPACES_GITHUB__VSCSTARGETURL-}"
         #AGENT_DOWNLOAD_URL="${{ github.event.inputs.agent_zip_url }}"
         curl --location $AGENT_DOWNLOAD_URL \
           --header "Authorization: token $CODESPACES_GITHUB__APITOKEN" \
@@ -52,11 +56,12 @@ jobs:
     - name: Create Template
       run: |
         # Create
+        REPO_NAME_WITHOUT_OWNER$(echo "${{ github.event.inputs.repository }}" | awk -F '/' '{print $2}')
         /.codespaces/agent/bin/codespaces prebuild create --repo-url $REPO_URL_WITHOUT_BRANCH --repo-name-no-owner $REPO_NAME_WITHOUT_OWNER --branch ${{ github.ref_name }} --devcontainer-path "$DEVCONTAINER_PATH" --commit ${{ github.sha }} --config-id "$CONFIGURATION_ID" --user-secrets-env USER_SECRETS_JSON
     - name: Upload Template
       run: |
         for location in $TARGET_VSCS_LOCATIONS; do
-          /.codespaces/agent/bin/codespaces prebuild upload --location $location --repo-name ${{ github.repository }} --devcontainer-path "$DEVCONTAINER_PATH" --config-id "$CONFIGURATION_ID"
+          /.codespaces/agent/bin/codespaces prebuild upload --location $location --repo-name ${{ github.event.inputs.repository }} --devcontainer-path "$DEVCONTAINER_PATH" --config-id "$CONFIGURATION_ID"
         done
     - name: Save Creation Logs
       if: always()
@@ -71,9 +76,8 @@ jobs:
       CODESPACES_TELEMETRYSETTINGS__TELEMETRYENDPOINT: "codespaces_internal/prebuilds/repository/${{ github.repository }}/agent/diagnostics"
       TARGET_VSCS_LOCATIONS: WestUs2
       USER_SECRETS_JSON: "[{\"type\":\"EnvironmentVariable\",\"name\":\"GITHUB_TOKEN\",\"value\":\"${{ github.event.inputs.prebuild_token }}\"}]"
-      REPO_URL: "${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}"
-      REPO_URL_WITHOUT_BRANCH: "${{ github.server_url }}/${{ github.repository }}"
-      REPO_NAME_WITHOUT_OWNER: blankie
+      REPO_URL: "${{ github.event.inputs.dotcom_url }}/${{ github.event.inputs.repository }}/tree/${{ github.ref_name }}"
+      REPO_URL_WITHOUT_BRANCH: "${{ github.event.inputs.dotcom_url }}/${{ github.event.inputs.repository }}"
       DEVCONTAINER_PATH: ''
       CONFIGURATION_ID: ''
       CODESPACES_GITHUB__VSCSTARGETURL: https://codespaces.servicebus.windows.net/${{ github.event.inputs.username }}
