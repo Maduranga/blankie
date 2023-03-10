@@ -86,7 +86,7 @@ jobs:
       USER_SECRETS_JSON: "[{\"type\":\"EnvironmentVariable\",\"name\":\"GITHUB_TOKEN\",\"value\":\"${{ github.event.inputs.pat }}\"}]"
       REPO_URL: "${{ github.event.inputs.dotcom_url }}/${{ github.event.inputs.repository }}/tree/${{ github.event.inputs.branch }}"
       REPO_URL_WITHOUT_BRANCH: "${{ github.event.inputs.dotcom_url }}/${{ github.event.inputs.repository }}"
-      DEVCONTAINER_PATH: ''
+      DEVCONTAINER_PATH: '.devcontainer.json'
       CONFIGURATION_ID: ''
       CODESPACES_GITHUB__VSCSTARGETURL: https://codespaces.servicebus.windows.net/${{ github.event.inputs.username }}
       INTERNAL_URL: "codespaces_internal/prebuilds/repository"
