@@ -64,8 +64,17 @@ jobs:
       run: |
         # Create
         REPO_NAME_WITHOUT_OWNER="$(echo "${{ github.event.inputs.repository }}" | awk -F '/' '{print $2}')"
-        /.codespaces/agent/bin/codespaces prebuild create --repo-url $REPO_URL_WITHOUT_BRANCH --repo-name-no-owner $REPO_NAME_WITHOUT_OWNER --branch ${{ github.event.inputs.branch }} --devcontainer-path "$DEVCONTAINER_PATH" --config-id "$CONFIGURATION_ID" --user-secrets-env USER_SECRETS_JSON
-    - name: Upload Template
+        /.codespaces/agent/bin/codespaces prebuild create --no-shrink --repo-url $REPO_URL_WITHOUT_BRANCH --repo-name-no-owner $REPO_NAME_WITHOUT_OWNER --branch ${{ github.event.inputs.branch }} --devcontainer-path "$DEVCONTAINER_PATH" --config-id "$CONFIGURATION_ID" --user-secrets-env USER_SECRETS_JSON
+    - name: Upload Template for v2
+      run: |
+        for location in $TARGET_VSCS_LOCATIONS; do
+          /.codespaces/agent/bin/codespaces prebuild upload --storage-type v2 --location $location --repo-name ${{ github.event.inputs.repository }} --devcontainer-path "$DEVCONTAINER_PATH" --config-id "$CONFIGURATION_ID"
+        done
+    - name: Shrink Template
+      run: |
+        # Shrink
+        /.codespaces/agent/bin/codespaces prebuild shrink
+    - name: Upload Template for v1
       run: |
         for location in $TARGET_VSCS_LOCATIONS; do
           /.codespaces/agent/bin/codespaces prebuild upload --location $location --repo-name ${{ github.event.inputs.repository }} --devcontainer-path "$DEVCONTAINER_PATH" --config-id "$CONFIGURATION_ID"
