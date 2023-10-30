@@ -8,7 +8,7 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    if: ${{ contains(fromJSON('["success", "failure", "cancelled"]'), github.event.workflow_run.conclusion) }}
+    if: ${{ contains(fromJSON('["success", "failure", "cancelled", "timed_out"]'), github.event.workflow_run.conclusion) }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PPE_RUNS_URL: https://github.com/${{ github.repository }}/actions/workflows/codespaces/create_codespaces_prebuilds_ppe?query=branch%3Amain
@@ -38,7 +38,7 @@ jobs:
 
           if [[ "$IS_SUCCESS" = "true" ]]; then
             if [[ "$existing_number" = "null" ]]; then
-              # Success and no existing issue, nothing to do
+              : # Success and no existing issue, nothing to do
             else
               body="Closing as the prebuild has succeeded in [this run](${{ github.event.workflow_run.html_url }})"
               
