@@ -6,17 +6,17 @@ on:
     types:
     - completed
 jobs:
-  on-failure:
+  run:
     runs-on: ubuntu-latest
-    # TODO!
-    #if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ contains(fromJSON('["success", "failure", "cancelled"]'), github.event.workflow_run.conclusion) }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PPE_RUNS_URL: https://github.com/${{ github.repository }}/actions/workflows/codespaces/create_codespaces_prebuilds_ppe?query=branch%3Amain
       PROD_RUNS_URL: https://github.com/${{ github.repository }}/actions/workflows/codespaces/create_codespaces_prebuilds?query=branch%3Amain
       IS_PPE: ${{ endsWith(github.event.workflow.name, '(ppe)') }}
+      IS_SUCCESS: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Alert on failure
+      - name: Handle Prebuild Completion
         run: |
           if [[ "$IS_PPE" = "true" ]]; then
             url="$PPE_RUNS_URL"
@@ -36,15 +36,25 @@ jobs:
             --json number \
             | jq -r '.[0].number')
 
-          if [[ "$existing_number" = "null" ]]; then
-            body=$(echo -e "The prebuild creation workflow has failed for $env.\n
-            Check the action's [run history]($url) to investigate any recent errors.")
-          
-            gh issue create -t "$title" -b "$body" -R "${{ github.repository }}"
-          else
-            body="Ping! Looks like this is still happening :sweat_smile:"
+          if [[ "$IS_SUCCESS" = "true" ]]; then
+            if [[ "$existing_number" = "null" ]]; then
+              # Success and no existing issue, nothing to do
+            else
+              body="Closing as the prebuild has succeeded in [this run](${{ github.event.workflow_run.html_url }})"
+              
+              gh issue comment $existing_number -b "$body" -R "${{ github.repository }}"
+              gh issue close $existing_number -R "${{ github.repository }}"
+            fi
+          else # failed
+            if [[ "$existing_number" = "null" ]]; then
+              body=$(echo -e "The prebuild creation workflow has failed for $env.\n
+              Check the action's [run history]($url) to investigate any recent errors.")
             
-            gh issue comment $existing_number -b "$body" -R "${{ github.repository }}"
+              gh issue create -t "$title" -b "$body" -R "${{ github.repository }}"
+            else
+              body="Ping! Looks like this is still happening in [this run](${{ github.event.workflow_run.html_url }}) :sweat_smile:"
+              
+              gh issue comment $existing_number -b "$body" -R "${{ github.repository }}"
+            fi
           fi
-  
 
