@@ -47,7 +47,8 @@ jobs:
             fi
           else # failed
             if [[ "$existing_number" = "null" ]]; then
-              body=$(echo -e "The prebuild creation workflow has failed for $env.\n
+              # gh cli doesn't work nicely with newlines, this works around that
+              body=$(echo -e "The prebuild creation workflow has failed for $env in [this run](${{ github.event.workflow_run.html_url }}).\n
               Check the action's [run history]($url) to investigate any recent errors.")
             
               gh issue create -t "$title" -b "$body" -R "${{ github.repository }}"
