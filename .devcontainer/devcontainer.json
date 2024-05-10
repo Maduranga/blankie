@@ -1,6 +1,6 @@
 {
   "tasks": {
     "build": "echo hello world!",
-    "launch": "echo I'm blasting off!"
+    "launch": "flask run"
   }
 }
