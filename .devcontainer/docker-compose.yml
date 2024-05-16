@@ -1,0 +1,212 @@
+services:
+  chrome:
+    image: public.ecr.aws/degica/selenium-standalone-chrome-debug:3.141.59
+    networks:
+      default: null
+    shm_size: "2147483648"
+  db:
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_520_ci
+      - --sql-mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+      - --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: test123
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysql --password=test123 -e "show databases;"
+    image: public.ecr.aws/docker/library/mysql:8.0
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 3306
+        published: "50133"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: hats_mysql_data
+        target: /var/lib/mysql
+        volume: {}
+  destoroyah:
+    command:
+      - sh
+      - -c
+      - bin/rails s -b 0.0.0.0 -p 3000
+    depends_on:
+      db:
+        condition: service_started
+        restart: true
+        required: true
+    environment:
+      APP_PASSWORD: password
+      APP_USERNAME: destoroyah
+      AWS_KMS_ACCESS_KEY_ID: AKIAJ4O7KRX6YBWS3LEA
+      AWS_KMS_SECRET_ACCESS_KEY: 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
+      DATABASE_URL: mysql2://root:test123@db:3306/destoroyah-development
+      DISABLE_DATABASE_ENVIRONMENT_CHECK: "1"
+      KMS_CMK_ID: bbeeb5ed-9395-4a56-9e30-7b6897da5303
+      PORT: "3000"
+      RAILS_ENV: development
+      SECRET_KEY_BASE: 5e740027778c0f4f72a1b43182a8c15ddc81531af532544e1d6156b8fd68f8d38518d71badc6477123f522890f07e1227ec9b62fd895c6d864b4de4784a077f2
+    image: ghcr.io/degica/destoroyah_for_hats:master
+    links:
+      - db
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "5000"
+        protocol: tcp
+    restart: always
+    stdin_open: true
+    tty: true
+  dev:
+    command:
+      - sh
+      - -c
+      - sleep infinity
+    depends_on:
+      chrome:
+        condition: service_started
+        restart: true
+        required: true
+      db:
+        condition: service_started
+        restart: true
+        required: true
+      destoroyah:
+        condition: service_started
+        restart: true
+        required: true
+      redis:
+        condition: service_started
+        restart: true
+        required: true
+    environment:
+      CACHE_REDIS_URL: redis://redis:6379
+      CODESPACES: "true"
+      DATABASE_URL: mysql2://root:test123@db:3306
+      DD_TRACE_AGENT_URL: http://ddagent-app:8126
+      DESTOROYAH_LOGIN: destoroyah
+      DESTOROYAH_PASS: password
+      DESTOROYAH_URL: http://destoroyah:3000
+      ELASTICSEARCH_URL: http://elasticsearch:9200/
+      OPENSSL_CONF: .openssl.conf
+      RAILS_SECRET_KEY_BASE: 1234567890abcdef
+      REMOTE_CHROME_HOST: chrome
+      SIDEKIQ_REDIS_URL: redis://redis:6379
+      TEST_DDAGENT: "false"
+      TEST_HOST: dev
+      UPLOAD_DATA_BUCKET: komoju-development-uploads
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+    labels:
+      ContainerVersion: "13"
+      Type: codespaces
+    links:
+      - redis
+      - db
+      - destoroyah
+      - chrome
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 50130
+        published: "50130"
+        protocol: tcp
+    stdin_open: true
+    tty: true
+    volumes:
+      - type: bind
+        source: /.codespaces/agent/mount
+        target: /.codespaces/bin
+        bind:
+          create_host_path: true
+      - type: bind
+        source: /var/lib/docker/codespacemount/workspace/hats
+        target: /home/me/hats
+        bind:
+          create_host_path: true
+      - type: bind
+        source: /mnt/containerTmp
+        target: /tmp
+        bind:
+          create_host_path: true
+      - type: volume
+        source: bundle
+        target: /usr/local/bundle
+        volume: {}
+      - type: bind
+        source: /var/lib/docker/codespacemount/workspace
+        target: /workspaces
+        bind:
+          create_host_path: true
+      - type: bind
+        source: /var/lib/docker/codespacemount/.persistedshare
+        target: /workspaces/.codespaces/.persistedshare
+        bind:
+          create_host_path: true
+      - type: bind
+        source: /root/.codespaces/shared
+        target: /workspaces/.codespaces/shared
+        bind:
+          create_host_path: true
+  elasticsearch:
+    command:
+      - sh
+      - -c
+      - elasticsearch
+    environment:
+      ES_JAVA_OPTS: -Xms512M -Xmx512M
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    image: public.ecr.aws/docker/library/elasticsearch:8.7.0
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 9200
+        published: "9200"
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: volume
+        source: es_data
+        target: /usr/share/elasticsearch/data
+        volume: {}
+  kibana:
+    command:
+      - sh
+      - -c
+      - kibana
+    depends_on:
+      elasticsearch:
+        condition: service_started
+        required: true
+    image: public.ecr.aws/elastic/kibana:8.7.0
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5601
+        published: "5601"
+        protocol: tcp
+    restart: always
+  redis:
+    image: public.ecr.aws/docker/library/redis
+    networks:
+      default: null
+networks:
+  default:
+    name: hats_default
+volumes:
+  bundle:
+    name: hats_bundle
+  es_data:
+    name: hats_es_data
+    driver: local
+  hats_mysql_data:
+    name: hats_hats_mysql_data
